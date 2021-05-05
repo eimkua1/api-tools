@@ -12,26 +12,20 @@ use Laminas\ApiTools\ApiProblem\Exception\DomainException;
 use Laminas\ApiTools\Rest\AbstractResourceListener;
 use Laminas\Db\TableGateway\TableGatewayInterface as TableGateway;
 use Laminas\Paginator\Adapter\DbTableGateway as TableGatewayPaginator;
+use Laminas\Paginator\Paginator;
 
 class DbConnectedResource extends AbstractResourceListener
 {
-    /**
-     * @var string Name of collection class
-     */
+    /** @var string Name of collection class */
     protected $collectionClass;
 
-    /**
-     * @var string Name of identifier field
-     */
+    /** @var string Name of identifier field */
     protected $identifierName;
 
-    /**
-     * @var TableGateway
-     */
+    /** @var TableGateway */
     protected $table;
 
     /**
-     * @param TableGateway $table
      * @param string $identifierName
      * @param string $collectionClass
      */
@@ -91,7 +85,7 @@ class DbConnectedResource extends AbstractResourceListener
     public function delete($id)
     {
         $item = $this->table->delete([$this->identifierName => $id]);
-        return ($item > 0);
+        return $item > 0;
     }
 
     /**
@@ -99,7 +93,7 @@ class DbConnectedResource extends AbstractResourceListener
      *
      * @param int|string $id Identifier of resource.
      * @return array|object Resource.
-     * @throws DomainException if the resource is not found.
+     * @throws DomainException If the resource is not found.
      */
     public function fetch($id)
     {
@@ -114,7 +108,7 @@ class DbConnectedResource extends AbstractResourceListener
      * Fetch a paginated set of resources.
      *
      * @param array|object $data Ignored.
-     * @return \Laminas\Paginator\Paginator
+     * @return Paginator
      */
     public function fetchAll($data = [])
     {

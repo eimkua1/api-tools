@@ -13,10 +13,13 @@ use Laminas\ApiTools\DbConnectedResource;
 use Laminas\ApiTools\DbConnectedResourceAbstractFactory;
 use Laminas\Db\TableGateway\TableGateway;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 class DbConnectedResourceAbstractFactoryTest extends TestCase
 {
-    protected function setUp()
+    use ProphecyTrait;
+
+    protected function setUp(): void
     {
         $this->services = $this->prophesize(ContainerInterface::class);
         $this->factory  = new DbConnectedResourceAbstractFactory();
@@ -53,15 +56,20 @@ class DbConnectedResourceAbstractFactoryTest extends TestCase
     {
         $this->services->has('config')->willReturn(true);
         $this->services->get('config')
-           ->willReturn(['api-tools' => [
-                'db-connected' => [
-                    'bar' => 'baz',
-                ],
-            ]]);
+           ->willReturn([
+               'api-tools' => [
+                   'db-connected' => [
+                       'bar' => 'baz',
+                   ],
+               ],
+           ]);
         $this->services->has('Foo\Table')->willReturn(false);
         $this->assertFalse($this->factory->canCreate($this->services->reveal(), 'Foo'));
     }
 
+    /**
+     * @return array
+     */
     public function invalidConfig()
     {
         return [
@@ -71,15 +79,18 @@ class DbConnectedResourceAbstractFactoryTest extends TestCase
     }
 
     /**
+     * @param array $configForDbConnected
      * @dataProvider invalidConfig
      */
     public function testWillNotCreateServiceIfDbConnectedSegmentIsInvalidConfiguration($configForDbConnected)
     {
-        $config = ['api-tools' => [
-            'db-connected' => [
-                'Foo' => $configForDbConnected,
+        $config = [
+            'api-tools' => [
+                'db-connected' => [
+                    'Foo' => $configForDbConnected,
+                ],
             ],
-        ]];
+        ];
         $this->services->has('config')->willReturn(true);
         $this->services->get('config')->willReturn($config);
 
@@ -92,6 +103,9 @@ class DbConnectedResourceAbstractFactoryTest extends TestCase
         $this->assertFalse($this->factory->canCreate($this->services->reveal(), 'Foo'));
     }
 
+    /**
+     * @return array[]
+     */
     public function validConfig()
     {
         return [
@@ -101,15 +115,19 @@ class DbConnectedResourceAbstractFactoryTest extends TestCase
     }
 
     /**
+     * @param array $configForDbConnected
+     * @param string $tableServiceName
      * @dataProvider validConfig
      */
     public function testWillCreateServiceIfDbConnectedSegmentIsValid($configForDbConnected, $tableServiceName)
     {
-        $config = ['api-tools' => [
-            'db-connected' => [
-                'Foo' => $configForDbConnected,
+        $config = [
+            'api-tools' => [
+                'db-connected' => [
+                    'Foo' => $configForDbConnected,
+                ],
             ],
-        ]];
+        ];
         $this->services->has('config')->willReturn(true);
         $this->services->get('config')->willReturn($config);
         $this->services->has($tableServiceName)->willReturn(true);
@@ -118,6 +136,8 @@ class DbConnectedResourceAbstractFactoryTest extends TestCase
     }
 
     /**
+     * @param array $configForDbConnected
+     * @param string $tableServiceName
      * @dataProvider validConfig
      */
     public function testFactoryReturnsResourceBasedOnConfiguration($configForDbConnected, $tableServiceName)
@@ -126,11 +146,13 @@ class DbConnectedResourceAbstractFactoryTest extends TestCase
         $this->services->has($tableServiceName)->willReturn(true);
         $this->services->get($tableServiceName)->willReturn($tableGateway);
 
-        $config = ['api-tools' => [
-            'db-connected' => [
-                'Foo' => $configForDbConnected,
+        $config = [
+            'api-tools' => [
+                'db-connected' => [
+                    'Foo' => $configForDbConnected,
+                ],
             ],
-        ]];
+        ];
         $this->services->has('config')->willReturn(true);
         $this->services->get('config')->willReturn($config);
 

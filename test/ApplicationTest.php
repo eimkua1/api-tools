@@ -16,16 +16,21 @@ use Laminas\Http\PhpEnvironment;
 use Laminas\Mvc\MvcEvent;
 use Laminas\ServiceManager\ServiceManager;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
+use ReflectionException;
 use ReflectionMethod;
 use ReflectionProperty;
 
 class ApplicationTest extends TestCase
 {
-    protected function setUp()
+    use ProphecyTrait;
+
+    protected function setUp(): void
     {
         $events = new EventManager();
 
-        $request = $this->prophesize(PhpEnvironment\Request::class);
+        $request  = $this->prophesize(PhpEnvironment\Request::class);
         $response = $this->prophesize(PhpEnvironment\Response::class);
 
         $this->services = $this->setUpServices(
@@ -71,6 +76,13 @@ class ApplicationTest extends TestCase
         return new Application($services, $events, $request, $response);
     }
 
+    /**
+     * @param ObjectProphecy|ServiceManager $services
+     * @param EventManager $events
+     * @param ObjectProphecy|PhpEnvironment\Request $request
+     * @param ObjectProphecy|PhpEnvironment\Response $response
+     * @return ObjectProphecy|ServiceManager
+     */
     public function setUpServices($services, $events, $request, $response)
     {
         $services->get('config')->willReturn([]);
@@ -80,6 +92,13 @@ class ApplicationTest extends TestCase
         return $services;
     }
 
+    /**
+     * @param Application $app
+     * @param ObjectProphecy|PhpEnvironment\Request $request
+     * @param ObjectProphecy|PhpEnvironment\Response $response
+     * @return Application
+     * @throws ReflectionException
+     */
     public function setUpMvcEvent($app, $request, $response)
     {
         $event = new MvcEvent();

@@ -10,14 +10,12 @@ namespace Laminas\ApiTools\MvcAuth;
 
 use Laminas\ApiTools\ApiProblem\ApiProblem;
 use Laminas\ApiTools\ApiProblem\ApiProblemResponse;
-use Laminas\ApiTools\MvcAuth\MvcAuthEvent;
 
 class UnauthenticatedListener
 {
     /**
      * Determine if we have an authentication failure, and, if so, return a 401 response
      *
-     * @param MvcAuthEvent $mvcAuthEvent
      * @return null|ApiProblemResponse
      */
     public function __invoke(MvcAuthEvent $mvcAuthEvent)

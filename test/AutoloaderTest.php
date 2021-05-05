@@ -9,19 +9,27 @@
 namespace LaminasTest\ApiTools;
 
 use Laminas\ApiTools\Autoloader;
+use LaminasTest\ApiTools\TestAsset\Foo_Bar;
+use LaminasTest\ApiTools\TestAsset\Foo_Bar\Baz_Bat;
 use PHPUnit\Framework\TestCase;
+
+use function class_exists;
 
 class AutoloaderTest extends TestCase
 {
+    /**
+     * @return string[][]
+     */
     public function classesToAutoload()
     {
         return [
-            'Foo_Bar'         => ['LaminasTest\ApiTools\TestAsset\Foo_Bar'],
-            'Foo_Bar\Baz_Bat' => ['LaminasTest\ApiTools\TestAsset\Foo_Bar\Baz_Bat'],
+            'Foo_Bar'         => [Foo_Bar::class],
+            'Foo_Bar\Baz_Bat' => [Baz_Bat::class],
         ];
     }
 
     /**
+     * @param string $className
      * @dataProvider classesToAutoload
      */
     public function testAutoloaderDoesNotTransformUnderscoresToDirectorySeparators($className)
@@ -31,7 +39,7 @@ class AutoloaderTest extends TestCase
                 'LaminasTest\ApiTools\TestAsset' => __DIR__ . '/TestAsset',
             ],
         ]);
-        $result = $autoloader->autoload($className);
+        $result     = $autoloader->autoload($className);
         $this->assertFalse(false === $result);
         $this->assertTrue(class_exists($className, false));
     }

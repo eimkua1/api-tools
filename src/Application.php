@@ -62,8 +62,6 @@ class Application extends MvcApplication
             $result = $events->triggerEventUntil($shortCircuit, $event);
         } catch (Throwable $e) {
             return $this->handleException($e, $event, $events);
-        } catch (Exception $e) {
-            return $this->handleException($e, $event, $events);
         }
 
         if ($result->stopped()) {
@@ -110,8 +108,6 @@ class Application extends MvcApplication
      * Handle an exception/throwable.
      *
      * @param Throwable|Exception $exception
-     * @param MvcEvent $event
-     * @param EventManagerInterface $events
      * @return self
      */
     private function handleException($exception, MvcEvent $event, EventManagerInterface $events)

@@ -15,16 +15,13 @@ use MongoCollection;
 use MongoException;
 use MongoId;
 
+use function is_object;
+
 class MongoConnectedListener extends AbstractResourceListener
 {
-    /**
-     * @var MongoCollection
-     */
+    /** @var MongoCollection */
     protected $collection;
 
-    /**
-     * @param MongoCollection $collection
-     */
     public function __construct(MongoCollection $collection)
     {
         $this->collection = $collection;
@@ -62,8 +59,8 @@ class MongoConnectedListener extends AbstractResourceListener
     public function patch($id, $data)
     {
         $result = $this->collection->update(
-            [ '_id' => new MongoId($id) ],
-            [ '$set' => $data ]
+            ['_id' => new MongoId($id)],
+            ['$set' => $data]
         );
 
         if (isset($result['ok']) && $result['ok']) {
@@ -81,7 +78,7 @@ class MongoConnectedListener extends AbstractResourceListener
     public function fetch($id)
     {
         $result = $this->collection->findOne([
-            '_id' => new MongoId($id)
+            '_id' => new MongoId($id),
         ]);
 
         if (null === $result) {
@@ -100,7 +97,7 @@ class MongoConnectedListener extends AbstractResourceListener
     public function fetchAll($params = [])
     {
         // @todo How to handle the pagination?
-        $rows = $this->collection->find($params);
+        $rows   = $this->collection->find($params);
         $result = [];
         foreach ($rows as $id => $collection) {
             unset($collection['_id']);
@@ -118,7 +115,7 @@ class MongoConnectedListener extends AbstractResourceListener
     public function delete($id)
     {
         $result = $this->collection->remove([
-            '_id' => new MongoId($id)
+            '_id' => new MongoId($id),
         ]);
         if (isset($result['ok']) && $result['ok']) {
             return true;

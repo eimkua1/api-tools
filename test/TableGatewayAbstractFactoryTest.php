@@ -19,10 +19,19 @@ use Laminas\Hydrator\ClassMethods;
 use Laminas\Hydrator\ClassMethodsHydrator;
 use Laminas\Hydrator\HydratorPluginManager;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
+use ReflectionException;
+use ReflectionProperty;
+use Zend\Db\Adapter\Adapter;
+use Zend\Db\Adapter\AdapterInterface;
+
+use function class_exists;
 
 class TableGatewayAbstractFactoryTest extends TestCase
 {
-    protected function setUp()
+    use ProphecyTrait;
+
+    protected function setUp(): void
     {
         $this->services = $this->prophesize(ContainerInterface::class);
         $this->factory  = new TableGatewayAbstractFactory();
@@ -91,9 +100,9 @@ class TableGatewayAbstractFactoryTest extends TestCase
             ]);
         $this->services->has(DbAdapterInterface::class)->willReturn(false);
 
-        $this->services->has(\Zend\Db\Adapter\AdapterInterface::class)->willReturn(false);
+        $this->services->has(AdapterInterface::class)->willReturn(false);
         $this->services->has(DbAdapter::class)->willReturn(false);
-        $this->services->has(\Zend\Db\Adapter\Adapter::class)->willReturn(false);
+        $this->services->has(Adapter::class)->willReturn(false);
         $this->assertFalse($this->factory->canCreate($this->services->reveal(), 'Foo\Table'));
     }
 
@@ -132,11 +141,14 @@ class TableGatewayAbstractFactoryTest extends TestCase
 
         $this->services->has(DbAdapterInterface::class)->willReturn(false);
 
-        $this->services->has(\Zend\Db\Adapter\AdapterInterface::class)->willReturn(false);
+        $this->services->has(AdapterInterface::class)->willReturn(false);
         $this->services->has(DbAdapter::class)->willReturn(true);
         $this->assertTrue($this->factory->canCreate($this->services->reveal(), 'Foo\Table'));
     }
 
+    /**
+     * @return string[][]
+     */
     public function validConfig()
     {
         return [
@@ -146,6 +158,7 @@ class TableGatewayAbstractFactoryTest extends TestCase
     }
 
     /**
+     * @param string $adapterServiceName
      * @dataProvider validConfig
      */
     public function testFactoryReturnsTableGatewayInstanceBasedOnConfiguration($adapterServiceName)
@@ -166,7 +179,7 @@ class TableGatewayAbstractFactoryTest extends TestCase
         $this->services->get($adapterServiceName)->willReturn($adapter->reveal());
 
         $config = [
-            'api-tools' => [
+            'api-tools'      => [
                 'db-connected' => [
                     'Foo' => [
                         'controller_service_name' => 'Foo\Controller',
@@ -193,10 +206,12 @@ class TableGatewayAbstractFactoryTest extends TestCase
         $resultSet = $gateway->getResultSetPrototype();
         $this->assertInstanceOf(HydratingResultSet::class, $resultSet);
         $this->assertSame($hydrator, $resultSet->getHydrator());
-        $this->assertAttributeInstanceOf(TestAsset\Foo::class, 'objectPrototype', $resultSet);
+
+        $this->assertObjectPrototypeProperty($resultSet, TestAsset\Foo::class);
     }
 
     /**
+     * @param string $adapterServiceName
      * @dataProvider validConfig
      */
     public function testFactoryReturnsTableGatewayInstanceBasedOnConfigurationWithoutLaminasRest($adapterServiceName)
@@ -240,7 +255,8 @@ class TableGatewayAbstractFactoryTest extends TestCase
         $resultSet = $gateway->getResultSetPrototype();
         $this->assertInstanceOf(HydratingResultSet::class, $resultSet);
         $this->assertInstanceOf($this->getClassMethodsHydratorClassName(), $resultSet->getHydrator());
-        $this->assertAttributeInstanceOf(TestAsset\Bar::class, 'objectPrototype', $resultSet);
+
+        $this->assertObjectPrototypeProperty($resultSet, TestAsset\Bar::class);
     }
 
     /**
@@ -256,5 +272,15 @@ class TableGatewayAbstractFactoryTest extends TestCase
         }
 
         return ClassMethods::class;
+    }
+
+    /**
+     * @throws ReflectionException
+     */
+    private function assertObjectPrototypeProperty(HydratingResultSet $resultSet, string $expectedClassName): void
+    {
+        $objectPrototypeProperty = new ReflectionProperty($resultSet, 'objectPrototype');
+        $objectPrototypeProperty->setAccessible(true);
+        $this->assertInstanceOf($expectedClassName, $objectPrototypeProperty->getValue($resultSet));
     }
 }
